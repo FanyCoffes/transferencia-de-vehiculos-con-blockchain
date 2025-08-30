@@ -25,6 +25,8 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
+import { PaymentWall } from "./payment-wall"
+
 const vehicleData = {
   fran: [
     {
@@ -136,6 +138,8 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
   const [completedSales, setCompletedSales] = useState<any[]>([])
   const router = useRouter()
 
+  const [showPaymentWall, setShowPaymentWall] = useState<string | null>(null)
+
   const hardcodedVehicles = vehicleData[currentUser.id as keyof typeof vehicleData] || []
   const purchasedVehicles = JSON.parse(localStorage.getItem(`ownedVehicles_${currentUser.cuil}`) || "[]")
   const soldVehicleIds = JSON.parse(localStorage.getItem(`soldVehicles_${currentUser.cuil}`) || "[]").map(
@@ -149,13 +153,15 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
     localStorage.removeItem("globalPendingPurchases")
     localStorage.removeItem("purchases")
     localStorage.removeItem("globalPendingSales")
+    localStorage.removeItem("completedSales")
 
     setPurchases([])
     setPendingPurchases([])
     setPendingSales([])
+    setCompletedSales([])
 
-    console.log("[v0] All purchases and sales data has been reset")
-    alert("Datos reiniciados. Ahora puedes simular desde el inicio.")
+    console.log("[v0] All purchases and sales data has been reset including sales history.")
+    alert("Todos los datos de compras y ventas han sido reiniciados, incluyendo el historial.")
   }
 
   useEffect(() => {
@@ -197,6 +203,21 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
     console.log("[v0] Found pending sales:", allPendingSales)
     console.log("[v0] Found completed sales:", userCompletedSales)
   }, [currentUser])
+
+  const showPaymentWallForPurchase = (purchaseId: string) => {
+    setShowPaymentWall(purchaseId)
+  }
+
+  const handlePaymentWallComplete = () => {
+    if (showPaymentWall) {
+      processPurchasePayment(showPaymentWall)
+      setShowPaymentWall(null)
+    }
+  }
+
+  const handlePaymentWallCancel = () => {
+    setShowPaymentWall(null)
+  }
 
   const signPurchase = (purchaseId: string) => {
     const userData = JSON.parse(localStorage.getItem("currentUser") || "{}")
@@ -468,6 +489,14 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
           Mis Ventas ({pendingSales.length + completedSales.length})
         </button>
       </div>
+
+      {showPaymentWall && (
+        <PaymentWall
+          purchase={pendingPurchases.find((p) => p.id === showPaymentWall)}
+          onPaymentComplete={handlePaymentWallComplete}
+          onCancel={handlePaymentWallCancel}
+        />
+      )}
 
       {activeTab === "owned" ? (
         <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
@@ -782,7 +811,7 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
                               </p>
                             </div>
                             <Button
-                              onClick={() => processPurchasePayment(purchase.id)}
+                              onClick={() => showPaymentWallForPurchase(purchase.id)}
                               className="w-full hover:scale-105 transition-transform duration-200 bg-blue-600 hover:bg-blue-700"
                             >
                               <CreditCard className="w-4 h-4 mr-2" />
