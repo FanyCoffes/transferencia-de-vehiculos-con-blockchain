@@ -34,16 +34,23 @@ export default function LoginPage() {
     const user = credentials[username as keyof typeof credentials]
     if (user && user.password === password) {
       console.log("[v0] Login successful for user:", user)
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify({
-          id: user.userId,
-          name: user.name,
-          username: username,
-          cuil: user.cuil,
-        }),
-      )
-      router.push("/garage")
+      const userData = {
+        id: user.userId,
+        name: user.name,
+        username: username,
+        cuil: user.cuil,
+      }
+      console.log("[v0] Storing user data in localStorage:", userData)
+      localStorage.setItem("currentUser", JSON.stringify(userData))
+
+      console.log("[v0] Attempting to redirect to /garage")
+      try {
+        await router.push("/garage")
+        console.log("[v0] Redirect to /garage completed")
+      } catch (error) {
+        console.error("[v0] Error during redirect:", error)
+        setError("Error al redirigir. Intente nuevamente.")
+      }
     } else {
       console.log("[v0] Login failed for username:", username)
       setError("Usuario o contraseña incorrectos")
