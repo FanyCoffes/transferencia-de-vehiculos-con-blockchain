@@ -25,6 +25,8 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
+import { PaymentWall } from "@/components/payment-wall"
+
 const vehicleData = {
   fran: [
     {
@@ -128,6 +130,9 @@ interface VehicleGarageProps {
 }
 
 export function VehicleGarage({ currentUser }: VehicleGarageProps) {
+  const [showPaymentWall, setShowPaymentWall] = useState(false)
+  const [selectedPurchaseForPayment, setSelectedPurchaseForPayment] = useState<any>(null)
+
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"owned" | "purchases" | "sales">("owned")
   const [purchases, setPurchases] = useState<any[]>([])
@@ -411,6 +416,19 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
     const total = Object.keys(documents).length
     const valid = Object.values(documents).filter((doc: any) => doc.status === "valid").length
     return { valid, total, isComplete: valid === total }
+  }
+
+  const showPaymentModal = (purchase: any) => {
+    setSelectedPurchaseForPayment(purchase)
+    setShowPaymentWall(true)
+  }
+
+  const handlePaymentComplete = () => {
+    if (selectedPurchaseForPayment) {
+      processPurchasePayment(selectedPurchaseForPayment.id)
+    }
+    setShowPaymentWall(false)
+    setSelectedPurchaseForPayment(null)
   }
 
   return (
@@ -782,7 +800,7 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
                               </p>
                             </div>
                             <Button
-                              onClick={() => processPurchasePayment(purchase.id)}
+                              onClick={() => showPaymentModal(purchase)}
                               className="w-full hover:scale-105 transition-transform duration-200 bg-blue-600 hover:bg-blue-700"
                             >
                               <CreditCard className="w-4 h-4 mr-2" />
@@ -790,7 +808,7 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
                             </Button>
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                               <p className="text-xs text-blue-700">
-                                💳 El pago se procesará automáticamente dentro de la plataforma.
+                                💳 Se abrirá la pasarela de pago segura de la plataforma.
                               </p>
                             </div>
                           </>
@@ -1179,6 +1197,13 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
           )}
         </div>
       )}
+
+      <PaymentWall
+        isOpen={showPaymentWall}
+        onClose={() => setShowPaymentWall(false)}
+        onPaymentComplete={handlePaymentComplete}
+        purchase={selectedPurchaseForPayment}
+      />
     </div>
   )
 }
