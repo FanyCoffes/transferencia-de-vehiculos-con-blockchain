@@ -154,10 +154,12 @@ export function VehicleGarage({ currentUser }: VehicleGarageProps) {
     localStorage.removeItem("globalPendingPurchases")
     localStorage.removeItem("purchases")
     localStorage.removeItem("globalPendingSales")
+    localStorage.removeItem("completedSales")
 
     setPurchases([])
     setPendingPurchases([])
     setPendingSales([])
+    setCompletedSales([])
 
     console.log("[v0] All purchases and sales data has been reset")
     alert("Datos reiniciados. Ahora puedes simular desde el inicio.")
