@@ -1,8 +1,28 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Lock } from "lucide-react"
+import { Lock, User, LogOut } from "lucide-react"
 
 export function Hero() {
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const user = localStorage.getItem("currentUser")
+    if (user) {
+      setCurrentUser(JSON.parse(user))
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser")
+    setCurrentUser(null)
+    router.push("/login")
+  }
+
   return (
     <section className="bg-gradient-to-r from-slate-800 to-slate-700 text-white py-16">
       <div className="container mx-auto px-4">
@@ -27,40 +47,76 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right login card */}
+          {/* Right card - conditional rendering based on session */}
           <div className="flex justify-center">
-            <Card className="w-full max-w-md p-6 bg-white/10 backdrop-blur-sm border-white/20">
-              <div className="flex items-center gap-3 mb-6">
-                <Lock className="w-6 h-6 text-blue-400" />
-                <h3 className="text-xl font-semibold">Ingresar al Sistema</h3>
-              </div>
+            {currentUser ? (
+              <Card className="w-full max-w-md p-6 bg-white/10 backdrop-blur-sm border-white/20">
+                <div className="flex items-center gap-3 mb-6">
+                  <User className="w-6 h-6 text-green-400" />
+                  <h3 className="text-xl font-semibold">Sesión Activa</h3>
+                </div>
 
-              <div className="space-y-4">
-                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3">Iniciar sesión</Button>
+                <div className="space-y-4">
+                  <div className="text-center space-y-2">
+                    <p className="text-lg font-medium">{currentUser.name}</p>
+                    <p className="text-sm text-gray-300">CUIL: {currentUser.cuil}</p>
+                  </div>
 
-                <Button
-                  variant="outline"
-                  className="w-full border-white/30 text-white hover:bg-white/10 bg-transparent"
-                >
-                  Recuperar acceso
-                </Button>
-
-                <div className="grid grid-cols-2 gap-3">
                   <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10 text-sm bg-transparent"
+                    onClick={handleLogout}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white py-3 flex items-center gap-2"
                   >
-                    Comenzar registro
+                    <LogOut className="w-4 h-4" />
+                    Cerrar Sesión
                   </Button>
+
                   <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10 text-sm bg-transparent"
+                    onClick={() => router.push("/garage")}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
                   >
-                    Verificar CUIT
+                    Ir al Garage Virtual
                   </Button>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            ) : (
+              <Card className="w-full max-w-md p-6 bg-white/10 backdrop-blur-sm border-white/20">
+                <div className="flex items-center gap-3 mb-6">
+                  <Lock className="w-6 h-6 text-blue-400" />
+                  <h3 className="text-xl font-semibold">Ingresar al Sistema</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <Button
+                    onClick={() => router.push("/login")}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+                  >
+                    Iniciar sesión
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full border-white/30 text-white hover:bg-white/10 bg-transparent"
+                  >
+                    Recuperar acceso
+                  </Button>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:bg-white/10 text-sm bg-transparent"
+                    >
+                      Comenzar registro
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:bg-white/10 text-sm bg-transparent"
+                    >
+                      Verificar CUIT
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
           </div>
         </div>
       </div>
